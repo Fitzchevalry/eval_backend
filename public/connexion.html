@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pendu - Connexion</title>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Connexion</h1>
+      <div id="errorMessage" style="color: red"></div>
+
+      <form id="loginForm">
+        <label for="username">Pseudonyme:</label><br />
+        <input type="text" id="username" name="username" required /><br />
+        <label for="password">Mot de passe:</label><br />
+        <input type="password" id="password" name="password" required /><br />
+        <label for="avatar">Avatar:</label><br />
+        <select id="avatar" name="avatar" required>
+          <option value="/public/images/avatars/avatar1.jpg">Avatar 1</option>
+          <option value="/public/images/avatars/avatar2.jpg">
+            Avatar 2
+          </option></select
+        ><br />
+        <button type="submit">Connexion</button>
+      </form>
+    </div>
+    <script src="/script.js"></script>
+  </body>
+</html>

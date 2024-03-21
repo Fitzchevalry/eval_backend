@@ -1,0 +1,32 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pendu</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="status"></div>
+    <div id="game">
+      <div id="wordToGuess"></div>
+      <div id="chooseWordSection" style="display: none">
+        <input type="text" id="wordInput" placeholder="Entrer un mot" />
+        <button type="button" id="wordButton">Envoyer</button>
+      </div>
+      <input
+        type="text"
+        id="guessInput"
+        placeholder="Entrer une lettre"
+        disabled
+      />
+      <button id="guessButton" disabled>Deviner</button>
+    </div>
+    <button type="button" id="replay" style="display: none">Rejouer</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/game.js"></script>
+  </body>
+</html>
