@@ -1,21 +1,33 @@
-<!-- index.html -->
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pendu</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles/styles.css" />
   </head>
   <body>
+    <nav>
+      <ul>
+        <li><a href="/">Accueil</a></li>
+        <li><a href="/login">Connexion</a></li>
+        <li><a href="/game">Jeu</a></li>
+        <li><a href="/scores">Scores</a></li>
+      </ul>
+    </nav>
     <div id="status"></div>
     <div id="game">
       <div id="wordToGuess"></div>
+      <div id="lettersGuessedSection">
+        <span id="lettersGuessed"></span>
+      </div>
+      <div id="attemptsLeft">Tentatives restantes : 6</div>
+
       <div id="chooseWordSection" style="display: none">
         <input type="text" id="wordInput" placeholder="Entrer un mot" />
         <button type="button" id="wordButton">Envoyer</button>
       </div>
+      <div id="errorWord" style="color: red"></div>
       <input
         type="text"
         id="guessInput"
@@ -24,9 +36,11 @@
       />
       <button id="guessButton" disabled>Deviner</button>
     </div>
+    <div id="errorLetter" style="color: red"></div>
+
     <button type="button" id="replay" style="display: none">Rejouer</button>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/game.js"></script>
+    <script src="/js/game.js"></script>
   </body>
 </html>

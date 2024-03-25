@@ -1,123 +1,17 @@
 const http = require("http");
-const path = require("path");
 const express = require("express");
-const mongoose = require("mongoose");
 const socketIo = require("socket.io");
-const bodyParser = require("body-parser");
-const { log } = require("console");
+
+const { checkPlayerInDatabase, updateScore } = require("./auth");
+const { Joueur, Partie, Score } = require("./database");
+const routes = require("./routes");
+const { startSession } = require("mongoose");
 
 const app = express();
 const PORT = 3330;
 const server = http.createServer(app);
 
-// Connexion MongoDB
-mongoose.connect("mongodb://localhost/jeu_pendu");
-const db = mongoose.connection;
-db.on("error", console.error.bind(console, "Erreur de connexion à MongoDB:"));
-db.once("open", () => {
-  console.log("Connecté à la base de données MongoDB");
-});
-
-// Schémas MongoDB
-const joueurSchema = new mongoose.Schema({
-  username: { type: String, unique: true, required: true },
-  password: { type: String, required: true },
-  avatar: String,
-});
-
-const Joueur = mongoose.model("Joueur", joueurSchema);
-
-// // Schéma pour les mots
-// const motSchema = new mongoose.Schema({
-//   mot: String,
-// });
-
-// // Modèle pour les mots
-// const Mot = mongoose.model("Mot", motSchema);
-
-// // Liste de mots prédéfinis
-// const motsPredefinis = [
-//   "Pomme",
-//   "Ordinateur",
-//   "Éléphant",
-//   "Avion",
-//   "Soleil",
-//   "Bibliothèque",
-//   "Licorne",
-//   "Piano",
-//   "Montagne",
-//   "Guitare",
-//   "Océan",
-//   "Fusée",
-//   "Café",
-//   "Arc-en-ciel",
-//   "Dinosaure",
-//   "Champignon",
-//   "Cascade",
-//   "Tornade",
-//   "Téléphone",
-//   "Lune",
-// ];
-
-// Mots en BDD
-// Mot.insertMany(motsPredefinis.map((mot) => ({ mot })))
-//   .then(() => {
-//     console.log("Mots prédéfinis insérés avec succès dans la base de données.");
-//   })
-//   .catch((err) => {
-//     console.error("Erreur lors de l'insertion des mots prédéfinis:", err);
-//   });
-
-//Middleware
-app.use(express.static(path.join(__dirname, "public")));
-app.use(bodyParser.json());
-
-// Routes Index
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
-//Route Connexion
-app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "connexion.html"));
-});
-app.post("/login", (req, res) => {
-  const { username, password, avatar } = req.body;
-
-  // Vérification joueur dans BDD
-  Joueur.findOne({ username, password })
-    .then((joueur) => {
-      if (!joueur) {
-        // Si pas joueur nouvel enregistrement
-        const newJoueur = new Joueur({ username, password, avatar });
-
-        // Enregistrement dans la base de données
-        newJoueur
-          .save()
-          .then(() => {
-            console.log("Nouveau joueur enregistré:", newJoueur);
-            res.status(200).json({ message: "Inscription réussie !" });
-          })
-          .catch((err) => {
-            console.error("Erreur lors de l'enregistrement du joueur:", err);
-            res
-              .status(500)
-              .json({ message: "Erreur lors de l'enregistrement du joueur" });
-          });
-      } else {
-        // Si joueur existe
-        res.status(200).json({ message: "Connexion réussie !" });
-      }
-    })
-    .catch((err) => {
-      console.error("Erreur:", err);
-      res.status(500).json({ message: "Erreur de connexion" });
-    });
-});
-
-// Route pour la page de jeu
-app.get("/game", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "game.html"));
-});
+app.use(routes);
 
 // Serveur WebSocket avec socket.IO
 const io = socketIo(server);
@@ -127,6 +21,21 @@ let player2 = null;
 let currentPlayer = null;
 let wordToGuess = "";
 let guessedWord = "";
+let failedAttempts = 0;
+const maxAttempts = 6; // Limite maximale de tentatives
+let attemptsLeft = maxAttempts;
+
+let startTime = new Date();
+// // Obtenez les composants de la date
+// const year = endTime.getFullYear();
+// const month = (endTime.getMonth() + 1).toString().padStart(2, "0"); // Mois commence à 0
+// const day = endTime.getDate().toString().padStart(2, "0");
+// const hours = endTime.getHours().toString().padStart(2, "0");
+// const minutes = endTime.getMinutes().toString().padStart(2, "0");
+// const seconds = endTime.getSeconds().toString().padStart(2, "0");
+
+// // Formatez la date selon le format local
+// const formattedDate = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
 
 io.on("connection", (socket) => {
   console.log("connexion a socket");
@@ -176,7 +85,12 @@ io.on("connection", (socket) => {
   socket.on("startGame", (username) => {
     currentPlayer = Math.random() < 0.5 ? player1 : player2;
 
+    failedAttempts = 0;
+    attemptsLeft = maxAttempts;
+    guessedLetters = [];
+
     io.emit("gameStarted", currentPlayer.player.username);
+    io.emit("updateAttempts", attemptsLeft);
     console.log("gameStarted", currentPlayer.player.username);
   });
 
@@ -197,11 +111,22 @@ io.on("connection", (socket) => {
     }
   });
 
+  function calculateDuration(startTime, endTime) {
+    return Math.abs(endTime - startTime) / 1000; // durée en secondes
+  }
+
+  let guessedLetters = [];
+
   socket.on("guess", (letter, username) => {
     if (username !== currentPlayer.player.username) {
       return;
     }
-
+    if (!guessedLetters.includes(letter)) {
+      // Si la lettre devinée est correcte, mettez à jour la liste des lettres déjà devinées
+      guessedLetters.push(letter);
+      // Envoyer la liste des lettres déjà devinées au client
+      io.emit("guessedLetter", guessedLetters);
+    }
     let guessedCorrectly = false;
     let newGuessedWord = "";
     for (let i = 0; i < wordToGuess.length; i++) {
@@ -217,26 +142,88 @@ io.on("connection", (socket) => {
     io.emit("guessedWord", guessedWord);
 
     if (!guessedWord.includes("_")) {
-      io.emit("gameOver", currentPlayer.player.username);
+      io.emit("gameEnd", {
+        winner: currentPlayer.player.username,
+        result: "mot trouvé",
+      });
 
-      if (currentPlayer === player1) {
-        currentPlayer = player2;
-      } else {
-        currentPlayer = player1;
+      const endTime = new Date();
+      const time = calculateDuration(startTime, endTime);
+      const formattedDate = endTime.toLocaleString();
+      const partie = new Partie({
+        player1: player1.player.username,
+        player2: player2.player.username,
+        winner: currentPlayer.player.username,
+        duration: time,
+        word: wordToGuess,
+        result: "mot trouvé",
+        date: formattedDate,
+      });
+      partie.save();
+      updateScore(username, 10);
+      switchPlayers();
+    } else if (!guessedCorrectly) {
+      // Si la tentative échoue
+      failedAttempts++; // Incrémenter le compteur de tentatives échouées
+      attemptsLeft--;
+
+      io.emit("updateAttempts", attemptsLeft);
+      if (failedAttempts >= maxAttempts) {
+        // Si le joueur a dépassé le nombre maximal de tentatives
+        io.emit("gameEnd", {
+          loser: currentPlayer.player.username,
+          result: "mot non trouvé",
+        }); // Déclencher le jeu en échec
+        const endTime = new Date();
+        const time = calculateDuration(startTime, endTime);
+        const formattedDate = endTime.toLocaleString();
+        const partie = new Partie({
+          player1: player1.player.username,
+          player2: player2.player.username,
+          winner: getOpponent(username),
+          duration: time,
+          word: wordToGuess,
+          result: "mot non trouvé",
+          date: formattedDate,
+        });
+        partie.save();
+        updateScore(getOpponent(username), 10);
+        switchPlayers();
+        failedAttempts = 0;
       }
-      wordToGuess = "";
-      guessedWord = "";
     }
   });
+  function getOpponent(username) {
+    if (player1 && player1.player.username !== username) {
+      return player1.player.username;
+    } else if (player2 && player2.player.username !== username) {
+      return player2.player.username;
+    }
+    // Gérer le cas où l'adversaire n'est pas trouvé, par exemple :
+    return null;
+  }
 
-  // socket.on("disconnect", () => {
-  //   console.log("user disconnected");
-  //   if (player1 === socket) {
-  //     player1 = null;
-  //   } else if (player2 === socket) {
-  //     player2 = null;
-  //   }
-  // });
+  function switchPlayers() {
+    if (currentPlayer === player1) {
+      currentPlayer = player2;
+    } else {
+      currentPlayer = player1;
+    }
+    wordToGuess = "";
+    guessedWord = "";
+    failedAttempts = 0;
+    attemptsLeft = maxAttempts;
+    guessedLetters = [];
+  }
+
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+    if (player1 === socket) {
+      player1 = null;
+    } else if (player2 === socket) {
+      player2 = null;
+    }
+  });
 });
 
 server.listen(PORT, () => {

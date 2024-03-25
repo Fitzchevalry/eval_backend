@@ -1,0 +1,107 @@
+body {
+  font-family: "Arial", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+nav {
+  background-color: #065c09;
+  padding: 0.5rem;
+}
+
+nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li {
+  display: inline;
+  margin-right: 10px;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
+}
+
+.container {
+  width: 80%;
+  margin: auto;
+  text-align: center;
+  padding-top: 50px;
+}
+
+button {
+  background-color: #065c09;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+button a {
+  color: white;
+  text-decoration: none;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+form {
+  margin-top: 20px;
+}
+
+input[type="text"],
+input[type="password"],
+select {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+label {
+  text-align: left;
+  display: block;
+  margin-top: 10px;
+}
+
+#avatarPreview {
+  margin-top: 10px;
+}
+
+#errorMessage {
+  margin-top: 10px;
+}
+
+#game {
+  margin-top: 50px;
+}
+
+#lettersGuessedSection {
+  margin-top: 20px;
+}
+
+#lettersGuessed {
+  font-size: 20px;
+}
+
+#attemptsLeft {
+  font-size: 20px;
+  margin-top: 20px;
+}
+
+#errorWord,
+#errorLetter {
+  margin-top: 20px;
+}

@@ -1,4 +1,4 @@
-// script.js
+// game.js
 
 document.addEventListener("DOMContentLoaded", () => {
   const socket = io();
@@ -11,16 +11,38 @@ document.addEventListener("DOMContentLoaded", () => {
   const guessButton = document.getElementById("guessButton");
   const chooseWordSection = document.getElementById("chooseWordSection");
   const replayButton = document.getElementById("replay");
+  const errorWord = document.getElementById("errorWord");
+  const errorLetter = document.getElementById("errorLetter");
+  const attemptsLeftElement = document.getElementById("attemptsLeft");
+  const lettersGuessedElement = document.getElementById("lettersGuessed");
+  const debutPartie = new Date();
+
   // Fonction recup username localStorage
   const getUsernameFromLocalStorage = () => {
     return localStorage.getItem("username");
   };
 
+  guessInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      guessButton.click();
+    }
+  });
+
+  wordInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      wordButton.click();
+    }
+  });
+
   guessButton.addEventListener("click", () => {
     const letter = guessInput.value.trim().toLowerCase();
     if (letter.length !== 1 || !letter.match(/[a-z]/i)) {
-      alert("Entrer une lettre valide !");
+      errorLetter.innerHTML = "Entrer une lettre valide !";
       return;
+    } else {
+      errorLetter.innerHTML = "";
     }
     const username = getUsernameFromLocalStorage();
     socket.emit("guess", letter, username);
@@ -30,8 +52,10 @@ document.addEventListener("DOMContentLoaded", () => {
   wordButton.addEventListener("click", () => {
     const word = wordInput.value.trim().toLowerCase();
     if (word.length < 3) {
-      alert("Entrer un mot d'au moins trois lettres");
+      errorWord.innerHTML = "Entrer un mot d'au moins trois lettres";
       return;
+    } else {
+      errorWord.innerHTML = "";
     }
     console.log("le mot est :", word);
     const username = getUsernameFromLocalStorage();
@@ -57,6 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   socket.on("gameStarted", (currentPlayer) => {
     statusElement.innerHTML = `Que le jeu commence ! Au tour de : ${currentPlayer}`;
+
     if (username === currentPlayer) {
       guessInput.disabled = true;
       guessButton.disabled = true;
@@ -96,8 +121,23 @@ document.addEventListener("DOMContentLoaded", () => {
     wordToGuessElement.textContent = guessedWord;
   });
 
-  socket.on("gameOver", (winner) => {
-    statusElement.innerHTML = `Game over. ${winner} wins!`;
+  socket.on("guessedLetter", (lettersGuessed) => {
+    lettersGuessedElement.innerHTML = `Lettres déjà tapées : ${lettersGuessed.join(
+      ", "
+    )}`;
+  });
+  socket.on("updateAttempts", (attemptsLeft) => {
+    attemptsLeftElement.innerHTML = `Tentatives restantes : ${attemptsLeft}`;
+  });
+
+  socket.on("gameEnd", ({ winner, loser, result }) => {
+    if (result === "mot trouvé") {
+      statusElement.innerHTML = `Game over. ${winner} wins!`;
+    } else if (result === "mot non trouvé") {
+      statusElement.innerHTML = `Game over. ${loser} loses!`;
+      socket.emit("gameScoreLost", loser);
+    }
+    lettersGuessedElement.innerHTML = "Lettres déjà tapées : ";
     guessInput.disabled = true;
     guessButton.disabled = true;
     chooseWordSection.style.display = "none";
