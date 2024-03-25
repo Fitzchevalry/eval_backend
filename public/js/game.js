@@ -104,13 +104,22 @@ document.addEventListener("DOMContentLoaded", () => {
       guessButton.disabled = true;
       wordToGuessElement.style.display = "block";
       chooseWordSection.style.display = "none";
-    }
-    if (username === currentPlayer) {
+    } else {
       guessInput.disabled = false;
       guessButton.disabled = false;
       wordToGuessElement.style.display = "block";
       chooseWordSection.style.display = "none";
     }
+  });
+
+  // Dans votre fichier game.js, ajoutez ce code à la fin du bloc socket.on("updateAttempts", ...)
+  socket.on("updateHangman", (failedAttempts) => {
+    const hangmanImage = document.getElementById("hangmanImage");
+    hangmanImage.src = `/images/Try${failedAttempts}.png`;
+  });
+  socket.on("newGame", () => {
+    const hangmanImage = document.getElementById("hangmanImage");
+    hangmanImage.src = "/images/Try.png"; // Mettez le chemin de l'image initiale ici
   });
 
   socket.on("wordToGuess", (word) => {

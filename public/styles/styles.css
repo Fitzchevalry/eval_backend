@@ -7,6 +7,7 @@ body {
 nav {
   background-color: #065c09;
   padding: 0.5rem;
+  text-align: center;
 }
 
 nav ul {
@@ -88,6 +89,13 @@ label {
   margin-top: 50px;
 }
 
+#wordToGuess {
+  font-size: 24px;
+}
+#hangmanImage {
+  width: 100px;
+  height: 100px;
+}
 #lettersGuessedSection {
   margin-top: 20px;
 }

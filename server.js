@@ -5,7 +5,6 @@ const socketIo = require("socket.io");
 const { checkPlayerInDatabase, updateScore } = require("./auth");
 const { Joueur, Partie, Score } = require("./database");
 const routes = require("./routes");
-const { startSession } = require("mongoose");
 
 const app = express();
 const PORT = 3330;
@@ -24,18 +23,7 @@ let guessedWord = "";
 let failedAttempts = 0;
 const maxAttempts = 6; // Limite maximale de tentatives
 let attemptsLeft = maxAttempts;
-
 let startTime = new Date();
-// // Obtenez les composants de la date
-// const year = endTime.getFullYear();
-// const month = (endTime.getMonth() + 1).toString().padStart(2, "0"); // Mois commence à 0
-// const day = endTime.getDate().toString().padStart(2, "0");
-// const hours = endTime.getHours().toString().padStart(2, "0");
-// const minutes = endTime.getMinutes().toString().padStart(2, "0");
-// const seconds = endTime.getSeconds().toString().padStart(2, "0");
-
-// // Formatez la date selon le format local
-// const formattedDate = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
 
 io.on("connection", (socket) => {
   console.log("connexion a socket");
@@ -55,7 +43,9 @@ io.on("connection", (socket) => {
       } else if (!player2) {
         player2 = { socket, player };
       }
-
+      io.emit("playerLogin", {
+        username: player.username,
+      });
       io.emit("status", {
         player1: player1 && player1.player.username,
         player2: player2 && player2.player.username,
@@ -82,7 +72,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("startGame", (username) => {
+  socket.on("startGame", () => {
     currentPlayer = Math.random() < 0.5 ? player1 : player2;
 
     failedAttempts = 0;
@@ -98,7 +88,7 @@ io.on("connection", (socket) => {
     if (username === currentPlayer.player.username) {
       wordToGuess = word;
       console.log("word to guess:", word);
-      guessedWord = "_".repeat(word.length);
+      guessedWord = "-".repeat(word.length);
 
       io.emit("wordToGuess", guessedWord);
 
@@ -141,7 +131,7 @@ io.on("connection", (socket) => {
 
     io.emit("guessedWord", guessedWord);
 
-    if (!guessedWord.includes("_")) {
+    if (!guessedWord.includes("-")) {
       io.emit("gameEnd", {
         winner: currentPlayer.player.username,
         result: "mot trouvé",
@@ -166,6 +156,7 @@ io.on("connection", (socket) => {
       // Si la tentative échoue
       failedAttempts++; // Incrémenter le compteur de tentatives échouées
       attemptsLeft--;
+      io.emit("updateHangman", failedAttempts);
 
       io.emit("updateAttempts", attemptsLeft);
       if (failedAttempts >= maxAttempts) {
@@ -214,6 +205,7 @@ io.on("connection", (socket) => {
     failedAttempts = 0;
     attemptsLeft = maxAttempts;
     guessedLetters = [];
+    io.emit("newGame");
   }
 
   socket.on("disconnect", () => {

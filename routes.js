@@ -27,11 +27,11 @@ router.get("/login", (req, res) => {
 });
 
 router.post("/login", async (req, res, next) => {
-  const { username, password, avatar } = req.body;
+  const { username, password } = req.body;
 
   try {
-    const result = await checkPlayerInDatabase(username, password, avatar);
-    if (result.message === "Connexion réussie !") {
+    const result = await checkPlayerInDatabase(username, password);
+    if (result.message === "Connexion réussie !" || "Inscription réussie !") {
       // Stocker les informations d'identification de l'utilisateur dans la session
       req.session.username = username;
       res.status(200).json(result);

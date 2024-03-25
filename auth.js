@@ -4,7 +4,7 @@ async function checkPlayerInDatabase(username, password, avatar) {
   try {
     const joueur = await Joueur.findOne({ username, password });
     if (!joueur) {
-      const newJoueur = new Joueur({ username, password, avatar });
+      const newJoueur = new Joueur({ username, password });
       await newJoueur.save();
       console.log("Nouveau joueur enregistré :", newJoueur);
       return { message: "Inscription réussie !" };
