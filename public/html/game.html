@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pendu</title>
-    <link rel="stylesheet" href="/styles/styles.css" />
+    <link rel="stylesheet" href="/styles/game.css" />
   </head>
   <body>
     <nav>
@@ -15,32 +15,54 @@
         <li><a href="/scores">Scores</a></li>
       </ul>
     </nav>
-    <div id="status"></div>
+    <h2 id="status"></h2>
     <div id="game">
+      <div class="player-images">
+        <div class="player">
+          <img
+            class="imgPlayers"
+            id="player1-image"
+            src="/images/avatars/avatar1.png"
+          />
+          <p class="playerName" id="player1-name">Player 1</p>
+        </div>
+        <div class="player">
+          <img
+            class="imgPlayers"
+            id="player2-image"
+            src="/images/avatars/avatar2.png"
+          />
+          <p class="playerName" id="player2-name">Player 2</p>
+        </div>
+      </div>
       <div id="wordToGuess"></div>
       <div id="lettersGuessedSection">
         <span id="lettersGuessed"></span>
       </div>
+
       <img id="hangmanImage" src="/images/Try.png" />
 
-      <div id="attemptsLeft">Tentatives restantes : 6</div>
+      <div id="attemptsLeft"></div>
 
-      <div id="chooseWordSection" style="display: none">
-        <input type="text" id="wordInput" placeholder="Entrer un mot" />
-        <button type="button" id="wordButton">Envoyer</button>
+      <div class="inputTxt">
+        <div id="chooseWordSection" style="display: none">
+          <input type="text" id="wordInput" placeholder="Entrer un mot" />
+          <button type="button" id="wordButton">Envoyer</button>
+        </div>
+        <div id="errorWord" style="color: red"></div>
+        <div id="enterLetterSection">
+          <input
+            type="text"
+            id="guessInput"
+            placeholder="Entrer une lettre"
+            disabled
+          />
+          <button type="button" id="guessButton" disabled>Deviner</button>
+        </div>
+        <div id="errorLetter" style="color: red"></div>
+        <button type="button" id="replay" style="display: none">Rejouer</button>
       </div>
-      <div id="errorWord" style="color: red"></div>
-      <input
-        type="text"
-        id="guessInput"
-        placeholder="Entrer une lettre"
-        disabled
-      />
-      <button id="guessButton" disabled>Deviner</button>
     </div>
-    <div id="errorLetter" style="color: red"></div>
-
-    <button type="button" id="replay" style="display: none">Rejouer</button>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/game.js"></script>

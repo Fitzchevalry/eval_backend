@@ -26,23 +26,66 @@ nav ul li a {
   text-decoration: none;
 }
 
-.container {
-  width: 80%;
-  margin: auto;
+#game {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+h2 {
   text-align: center;
-  padding-top: 50px;
+}
+.player-images {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.playerName {
+  font-size: 18px;
+}
+
+.imgPlayers {
+  width: 60px;
+  height: 60px;
+}
+
+#hangmanImage {
+  display: block;
+  margin: 0 auto;
+  width: 100px;
+  height: 100px;
+}
+
+#lettersGuessedSection,
+#attemptsLeft {
+  text-align: center;
+}
+
+#wordToGuess {
+  justify-content: center;
+  font-size: 36px;
+  text-align: center;
 }
 
 button {
   background-color: #065c09;
   border: none;
   color: white;
-  padding: 15px 32px;
+  padding: 12px 32px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
   margin-top: 20px;
+  margin-left: 5px;
+  border-radius: 4px;
   cursor: pointer;
 }
 
@@ -55,17 +98,17 @@ button:hover {
   background-color: #45a049;
 }
 
-form {
-  margin-top: 20px;
-  margin: 0 auto;
-  width: 50%;
+.inputTxt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
 }
 
-input[type="text"],
-input[type="password"] {
-  width: 100%;
+input[type="text"] {
+  width: 200px;
   padding: 12px 20px;
-  margin: 8px 0;
+  margin: 8px 0 10px;
   display: inline-block;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -76,39 +119,4 @@ label {
   text-align: left;
   display: block;
   margin-top: 10px;
-}
-
-#errorMessage {
-  margin-top: 10px;
-}
-
-#game {
-  margin-top: 50px;
-}
-
-#wordToGuess {
-  font-size: 24px;
-}
-
-#hangmanImage {
-  width: 100px;
-  height: 100px;
-}
-
-#lettersGuessedSection {
-  margin-top: 20px;
-}
-
-#lettersGuessed {
-  font-size: 20px;
-}
-
-#attemptsLeft {
-  font-size: 20px;
-  margin-top: 20px;
-}
-
-#errorWord,
-#errorLetter {
-  margin-top: 20px;
 }

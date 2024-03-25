@@ -13,7 +13,7 @@ async function checkPlayerInDatabase(username, password, avatar) {
       return { message: "Connexion réussie !" };
     }
   } catch (error) {
-    throw new Error("Erreur lors de la vérification du joueur :", error);
+    throw new Error("Le pseudonyme est déjà utilisé");
   }
 }
 

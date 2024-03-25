@@ -3,13 +3,12 @@ const session = require("express-session");
 const path = require("path");
 const bodyParser = require("body-parser");
 const { checkPlayerInDatabase } = require("./auth");
-const { Joueur, Partie, Score } = require("./database");
+const { Partie, Score } = require("./database");
 const router = express.Router();
 
 router.use(express.static(path.join(__dirname, "public")));
 router.use(bodyParser.json());
 
-// Configuration de la session
 router.use(
   session({
     secret: "secret",
@@ -18,33 +17,34 @@ router.use(
   })
 );
 
+// Route vers Accueil
 router.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "html", "index.html"));
 });
 
+// Route vers Connexion
 router.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "html", "connexion.html"));
 });
-
+//Route pour la requête de connexion
 router.post("/login", async (req, res, next) => {
   const { username, password } = req.body;
 
   try {
     const result = await checkPlayerInDatabase(username, password);
     if (result.message === "Connexion réussie !" || "Inscription réussie !") {
-      // Stocker les informations d'identification de l'utilisateur dans la session
       req.session.username = username;
       res.status(200).json(result);
     } else {
-      res.status(401).json(result); // Unauthorized
+      res.status(401).json(result);
     }
   } catch (error) {
     next(error);
   }
 });
 
+// Route pour la page du jeu
 router.get("/game", (req, res) => {
-  // Vérifier si l'utilisateur est authentifié en consultant la session
   if (req.session.username) {
     res.sendFile(path.join(__dirname, "public", "html", "game.html"));
   } else {
@@ -52,10 +52,12 @@ router.get("/game", (req, res) => {
   }
 });
 
+// Route pour la page des scores
 router.get("/scores", async (req, res) => {
   res.sendFile(path.join(__dirname, "public", "html", "scores.html"));
 });
 
+//Route pour récupérer les scores individuels
 router.get("/individual-scores", async (req, res) => {
   try {
     const scores = await Score.find({}, { _id: 0, __v: 0 });
@@ -71,6 +73,7 @@ router.get("/individual-scores", async (req, res) => {
   }
 });
 
+//Route pour récupérer les scores des parties
 router.get("/game-scores", async (req, res) => {
   try {
     const scores = await Partie.find().sort({ date: -1 }).limit(10);

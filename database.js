@@ -1,13 +1,15 @@
 const mongoose = require("mongoose");
+require("dotenv").config();
+const uri = process.env.MONGODB_URI;
 
-mongoose.connect("mongodb://localhost/jeu_pendu");
-//"mongodb+srv://fitzchevalry:yDORYi56qKbiEW66@mj-cluster-1.ml93fuj.mongodb.net/jeu_pendu"
+mongoose.connect(uri);
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "Erreur de connexion à MongoDB:"));
 db.once("open", () => {
   console.log("Connecté à la base de données MongoDB");
 });
 
+// Définition du schéma pour les joueurs
 const joueurSchema = new mongoose.Schema({
   username: { type: String, unique: true, required: true },
   password: { type: String, required: true },
@@ -15,6 +17,7 @@ const joueurSchema = new mongoose.Schema({
 
 const Joueur = mongoose.model("Joueur", joueurSchema);
 
+// Définition du schéma pour les parties jouées
 const partieSchema = new mongoose.Schema({
   player1: String,
   player2: String,
@@ -27,6 +30,7 @@ const partieSchema = new mongoose.Schema({
 
 const Partie = mongoose.model("Partie", partieSchema);
 
+// Définition du schéma pour les scores individuels
 const scoreSchema = new mongoose.Schema({
   username: { type: String, required: true },
   score: { type: Number, default: 0 },
