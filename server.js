@@ -48,10 +48,7 @@ io.on("connection", (socket) => {
       } else if (!player2) {
         player2 = { socket, player };
       }
-      // Émet un événement pour informer de la connexion d'un joueur
-      io.emit("playerLogin", {
-        username: player.username,
-      });
+
       // Émet un événement pour mettre à jour l'état des joueurs
       io.emit("status", {
         player1: player1 && player1.player.username,

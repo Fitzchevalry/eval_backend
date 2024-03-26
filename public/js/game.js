@@ -91,13 +91,13 @@ document.addEventListener("DOMContentLoaded", () => {
       guessButton.disabled = true;
       chooseWordSection.style.display = "block";
       wordToGuessElement.style.display = "none";
-      replayButton.style.display = "none";
+      replayButton.style.display = "block";
     } else {
       guessInput.disabled = false;
       guessButton.disabled = false;
       chooseWordSection.style.display = "none";
       wordToGuessElement.style.display = "none";
-      replayButton.style.display = "none";
+      replayButton.style.display = "block";
     }
   });
 
