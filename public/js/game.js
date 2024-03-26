@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Écoute les événements de clic sur le bouton pour rejouer
   replayButton.addEventListener("click", () => {
-    socket.emit("startGame");
+    socket.emit("restartGame");
   });
 
   // Récupère le nom d'utilisateur

@@ -6,7 +6,7 @@ const { updateScore } = require("./auth");
 const { Joueur, Partie } = require("./database");
 
 const app = express();
-const PORT = 3330;
+const PORT = 8889;
 const server = http.createServer(app);
 
 app.use(routes);
@@ -66,8 +66,8 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Gestion de l'événement pour démarrer une nouvelle partie
-  socket.on("startGame", () => {
+  // Gestion de l'événement pour démarrer une nouvelle partie après avoir cliqué sur rejouer dans le client
+  socket.on("restartGame", () => {
     // Sélectionne aléatoirement le joueur qui commencera la partie
     currentPlayer = Math.random() < 0.5 ? player1 : player2;
     failedAttempts = 0;
