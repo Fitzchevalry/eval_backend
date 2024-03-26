@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const chooseWordSection = document.getElementById("chooseWordSection");
   const lettersGuessedElement = document.getElementById("lettersGuessed");
   const debutPartie = new Date();
+  let connectedPlayers = [];
 
   // Récupérer le nom d'utilisateur
   const getUsernameFromLocalStorage = () => {
@@ -47,10 +48,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       errorLetter.innerHTML = "";
     }
-
-    // Récupération du nom d'utilisateur
     const username = getUsernameFromLocalStorage();
-    socket.emit("guess", letter, username);
+    socket.emit("guess", { username, letter });
+
     guessInput.value = "";
   });
 
@@ -84,15 +84,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Écoute l'événement "gameStarted" pour commencer le jeu
-  socket.on("gameStarted", (currentPlayer) => {
-    statusElement.innerHTML = `Que le jeu commence ! Au tour de : ${currentPlayer}`;
-    if (username === currentPlayer) {
+  socket.on("gameStarted", ({ player1, player2 }) => {
+    statusElement.innerHTML = `Que le jeu commence ! Au tour de : ${player1}`;
+    if (username === player1) {
       guessInput.disabled = true;
       guessButton.disabled = true;
       chooseWordSection.style.display = "block";
       wordToGuessElement.style.display = "none";
       replayButton.style.display = "block";
-    } else {
+    } else if (username === player2) {
       guessInput.disabled = false;
       guessButton.disabled = false;
       chooseWordSection.style.display = "none";
@@ -101,12 +101,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Écoute l'événement "player2Move" pour mettre à jour le jeu lorsque le joueur 2 joue
-  socket.on("player2Move", (currentPlayer) => {
+  socket.on("player2Move", ({ currentPlayer, player1, player2 }) => {
     statusElement.innerHTML = `Au tour de : ${currentPlayer}`;
-    if (username !== currentPlayer) {
-      guessInput.disabled = true;
-      guessButton.disabled = true;
+    if (username !== player1 && username !== player2) {
+      guessInput.style.display = "none";
+      guessButton.style.display = "none";
       wordToGuessElement.style.display = "block";
       chooseWordSection.style.display = "none";
     } else {
@@ -119,13 +118,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Écoute l'événement "updatePlayers" pour mettre à jour les noms des joueurs
   socket.on("updatePlayers", (players) => {
+    const player1NameElement = document.getElementById("player1-name");
+    const player2NameElement = document.getElementById("player2-name");
+
     if (players.length > 0) {
-      document.getElementById("player1-name").textContent =
-        "Player 1: " + players[0];
+      player1NameElement.textContent = "Player 1: " + players[0];
       if (players.length > 1) {
-        document.getElementById("player2-name").textContent =
-          "Player 2: " + players[1];
+        player2NameElement.textContent = "Player 2: " + players[1];
+      } else {
+        // Si un seul joueur est connecté, effacez le nom du joueur 2
+        player2NameElement.textContent = "Player 2: ";
       }
+    } else {
+      // Si aucun joueur n'est connecté, effacez les noms des joueurs
+      player1NameElement.textContent = "Player 1: ";
+      player2NameElement.textContent = "Player 2: ";
     }
   });
 
@@ -176,5 +183,22 @@ document.addEventListener("DOMContentLoaded", () => {
     guessButton.disabled = true;
     chooseWordSection.style.display = "none";
     replayButton.style.display = "block";
+  });
+
+  // Supprimez le joueur déconnecté de la liste des joueurs connectés
+  socket.on("playerDisconnected", (playerId) => {
+    const index = connectedPlayers.findIndex(
+      (player) => player.id === playerId
+    );
+    if (index !== -1) {
+      connectedPlayers.splice(index, 1);
+    }
+    socket.emit("canceledGame");
+  });
+
+  // Écoutez l'événement redirectLoginPage côté client
+  socket.on("redirectLoginPage", () => {
+    // Redirigez l'utilisateur vers la page de connexion
+    window.location.href = "/login"; // Mettez l'URL de votre page de connexion
   });
 });
