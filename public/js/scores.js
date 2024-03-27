@@ -9,9 +9,11 @@ fetch("/individual-scores")
       const row = document.createElement("div");
       row.classList.add("score-row");
       row.innerHTML = `
-        <div class="score-cell">Date : ${score.date}</div>
-        <div class="score-cell">Joueur :${score.username}</div>
-        <div class="score-cell">Score : ${score.score}</div>
+      <div class="score-cell">
+        <div>Date : ${score.date}</div>
+        <div>Joueur :${score.username}</div>
+        <div>Score : ${score.score}</div>
+      </div>
       `;
       individualScoresTableBody.appendChild(row);
     });
@@ -32,13 +34,13 @@ fetch("/game-scores")
       const row = document.createElement("div");
       row.classList.add("score-row");
       row.innerHTML = `
-      <div class="score-cell">Date : ${score.date}</div>
-        <div class="score-cell">Joueur 1 : ${score.player1}</div>
-        <div class="score-cell">Joueur 2 : ${score.player2}</div>
-        <div class="score-cell">Gagnant de la partie : ${score.winner}</div>
-        <div class="score-cell">Durée de la partie : ${score.duration} secondes</div>
-        <div class="score-cell">Mot à deviné : ${score.word}</div>
-        <div class="score-cell">Status du mot : ${score.result}</div>
+      <div class="score-cell">
+        <div>Date : ${score.date}</div>
+        <div>Joueurs : ${score.player1} et ${score.player2}</div>
+        <div>Gagnant : ${score.winner}</div>
+        <div>Durée de la partie : ${score.duration} min</div>
+        <div>Mot à deviné : ${score.word} - ${score.result} </div> 
+      </div>
       `;
       gameScoresTableBody.appendChild(row);
     });

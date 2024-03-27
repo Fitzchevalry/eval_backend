@@ -23,6 +23,7 @@ let failedAttempts = 0;
 const maxAttempts = 6;
 let attemptsLeft = maxAttempts;
 let startTime = new Date();
+let nextPlayer;
 
 // Gestion des événements de connexion WebSocket
 io.on("connection", (socket) => {
@@ -30,7 +31,6 @@ io.on("connection", (socket) => {
 
   // Gestion de l'événement de connexion d'un utilisateur
   socket.on("login", async (username) => {
-    // Vérification de l'utilisateur dans la base de données
     try {
       const player = await Joueur.findOne({ username: username });
       if (!player) {
@@ -41,7 +41,7 @@ io.on("connection", (socket) => {
         { _id: player.id },
         { isConnected: true, socketId: socket.id }
       );
-      // Ajoute l'utilisateur à la liste des joueurs connectés
+
       connectedPlayers.push(player);
 
       // Émet un événement pour mettre à jour les joueurs connectés
@@ -51,45 +51,26 @@ io.on("connection", (socket) => {
       );
 
       // Émet un événement pour mettre à jour l'état des joueurs
-      io.emit("status", {
-        player1: player1 && player1.player.username,
-        player2: player2 && player2.player.username,
-      });
+      io.emit(
+        "status",
+        connectedPlayers.map((player) => player.username)
+      );
 
       // Vérifie s'il y a assez de joueurs pour démarrer une partie
       if (connectedPlayers.length >= 2) {
-        // Sélectionne les deux premiers joueurs de la liste des joueurs connectés
         player1 = connectedPlayers[0];
         player2 = connectedPlayers[1];
-
-        // Émet un événement pour démarrer la partie
-        io.emit("gameStarted", {
-          player1: player1.username,
-          player2: player2.username,
-        });
+        if (Math.random() < 0.5) {
+          currentPlayer = player1;
+        } else {
+          currentPlayer = player2;
+        }
+        // Émet un événement pour commencer la partie
+        io.emit("gameStarted", { currentPlayer: currentPlayer.username });
       }
     } catch (error) {
       console.error(error);
     }
-  });
-
-  // Gestion de l'événement pour démarrer une nouvelle partie après avoir cliqué sur rejouer dans le client
-  socket.on("restartGame", () => {
-    // Sélectionne aléatoirement le joueur qui commencera la partie
-    currentPlayer = Math.random() < 0.5 ? player1 : player2;
-    failedAttempts = 0;
-    attemptsLeft = maxAttempts;
-    guessedLetters = [];
-    // Émet un événement pour démarrer la partie
-    io.emit("gameStarted", {
-      player1: player1.username,
-      player2: player2.username,
-    });
-    io.emit("updateAttempts", attemptsLeft);
-    console.log("gameStarted", {
-      player1: player1.username,
-      player2: player2.username,
-    });
   });
 
   // Gestion de l'événement pour définir le mot à deviner
@@ -98,57 +79,48 @@ io.on("connection", (socket) => {
       (player1 && player1.username === username) ||
       (player2 && player2.username === username)
     ) {
-      // Vérifiez si le joueur actuel est autorisé à définir le mot
-      // Vérifiez si le joueur actuel est autorisé à définir le mot
-      if (
-        (!currentPlayer || currentPlayer === player1) &&
-        (player1.username === username || player2.username === username)
-      ) {
-        // Le joueur est autorisé à définir le mot
+      if (currentPlayer && currentPlayer.username === username) {
         wordToGuess = word;
-        console.log("word to guess:", word);
         guessedWord = "-".repeat(word.length);
 
         io.emit("wordToGuess", guessedWord);
 
-        // Changez de joueur pour le prochain tour
-        const nextPlayer = currentPlayer === player1 ? player2 : player1;
+        // Changement de joueur
+        if (currentPlayer === player1) {
+          nextPlayer = player2;
+        } else {
+          nextPlayer = player1;
+        }
         io.emit("player2Move", {
           currentPlayer: nextPlayer.username,
-          player1: player1 ? player1.username : null,
-          player2: player2 ? player2.username : null,
         });
         currentPlayer = nextPlayer;
       } else {
-        // Le joueur n'est pas autorisé à définir le mot actuellement
         console.log(
           "Le joueur n'est pas autorisé à définir le mot actuellement."
         );
       }
     } else {
-      // Le joueur n'est pas dans la partie
       console.log("Le joueur n'est pas dans la partie.");
     }
   });
 
   // Fonction pour calculer la durée de la partie
   function calculateDuration(startTime, endTime) {
-    return Math.abs(endTime - startTime) / 1000;
+    const durationInSeconds = Math.abs(endTime - startTime) / 1000;
+    const durationInMinutes = durationInSeconds / 60;
+    return durationInMinutes.toFixed(2);
   }
   // Gestion de l'événement pour deviner une lettre
   let guessedLetters = [];
-  // Gestion de l'événement pour deviner une lettre
   socket.on("guess", ({ username, letter }) => {
     if (username !== player1.username && username !== player2.username) {
       return;
-    } else {
-      console.log("ne rentres pas dans la condition");
     }
+
     if (!guessedLetters.includes(letter)) {
       guessedLetters.push(letter);
       io.emit("guessedLetter", guessedLetters);
-    } else {
-      console.log("pas emit à guessedLetter");
     }
     let guessedCorrectly = false;
     let newGuessedWord = "";
@@ -194,12 +166,9 @@ io.on("connection", (socket) => {
         failedAttempts = 0;
       }
     } else {
-      // Si la lettre a été correctement devinée
-      // Mettez à jour le mot deviné
       guessedWord = newGuessedWord;
       io.emit("guessedWord", guessedWord);
 
-      // Vérifiez si le mot a été entièrement deviné
       if (!guessedWord.includes("-")) {
         io.emit("gameEnd", {
           winner: username,
@@ -247,12 +216,40 @@ io.on("connection", (socket) => {
     guessedLetters = [];
     io.emit("newGame");
   }
-  // Définissez l'événement canceledGame côté serveur
+  // Gestion de l'événement pour démarrer une nouvelle partie après avoir cliqué sur rejouer côté client
+  socket.on("restartGame", () => {
+    // let currentPlayer;
+    if (Math.random() < 0.5) {
+      currentPlayer = player1;
+    } else {
+      currentPlayer = player2;
+    }
+    failedAttempts = 0;
+    attemptsLeft = maxAttempts;
+    guessedLetters = [];
+
+    io.emit("gameStarted", { currentPlayer: currentPlayer.username });
+    io.emit("updateAttempts", attemptsLeft);
+  });
+  // Gestion de l'événement pour mettre à jour la base de données et diffuser les changements à tous les clients connectés en cas de déconnexion
+  socket.on("disconnect", async () => {
+    try {
+      const playerId = socket.id;
+      const player = await Joueur.findOne({ socketId: playerId });
+
+      if (player) {
+        await Joueur.updateOne({ _id: player.id }, { isConnected: false });
+      }
+      io.emit("playerDisconnected", playerId);
+    } catch (error) {
+      console.error(error);
+    }
+  });
+
+  // Gestion de l'événement pour annuler la partie pour tous les joueurs si un des joueurs est déconnecté
   socket.on("canceledGame", () => {
-    // Parcourez tous les utilisateurs connectés
     connectedPlayers.forEach(async (player) => {
       try {
-        // Mettez à jour l'état de connexion du joueur dans la base de données
         await Joueur.updateOne({ _id: player.id }, { isConnected: false });
       } catch (error) {
         console.error(error);
@@ -266,27 +263,8 @@ io.on("connection", (socket) => {
     guessedWord = "";
     failedAttempts = 0;
     attemptsLeft = maxAttempts;
-    // Émettez un événement pour rediriger les utilisateurs vers la page de connexion
-    io.emit("redirectLoginPage");
-  });
 
-  // Lorsqu'un joueur se déconnecte, vous pouvez mettre à jour la base de données et diffuser les changements à tous les clients connectés
-  socket.on("disconnect", async () => {
-    try {
-      // Recherchez le joueur dans la base de données par son ID ou un autre identifiant unique
-      const playerId = socket.id;
-      const player = await Joueur.findOne({ socketId: playerId });
-      console.log(playerId);
-      if (player) {
-        // Mettez à jour l'état de connexion du joueur dans la base de données
-        await Joueur.updateOne({ _id: player.id }, { isConnected: false });
-      }
-      // Diffusez les changements aux clients connectés
-      io.emit("playerDisconnected", playerId);
-      console.log(playerId);
-    } catch (error) {
-      console.error(error);
-    }
+    io.emit("redirectLoginPage");
   });
 });
 

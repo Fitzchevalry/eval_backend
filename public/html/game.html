@@ -10,12 +10,10 @@
     <nav>
       <ul>
         <li><a href="/">Accueil</a></li>
-        <li><a href="/login">Connexion</a></li>
         <li><a href="/game">Jeu</a></li>
         <li><a href="/scores">Scores</a></li>
       </ul>
     </nav>
-    <h2 id="status"></h2>
     <div id="game">
       <div class="player-images">
         <div class="player">
@@ -43,14 +41,15 @@
       <img id="hangmanImage" src="/images/Try.png" />
 
       <div id="attemptsLeft"></div>
-
+      <h2 id="status"></h2>
       <div class="inputTxt">
         <div id="chooseWordSection" style="display: none">
           <input type="text" id="wordInput" placeholder="Entrer un mot" />
           <button type="button" id="wordButton">Envoyer</button>
+          <div id="errorWord" style="color: red"></div>
         </div>
-        <div id="errorWord" style="color: red"></div>
-        <div id="enterLetterSection">
+
+        <div id="enterLetterSection" style="display: none">
           <input
             type="text"
             id="guessInput"
@@ -58,8 +57,15 @@
             disabled
           />
           <button type="button" id="guessButton" disabled>Deviner</button>
+          <div id="errorLetter" style="color: red"></div>
         </div>
-        <div id="errorLetter" style="color: red"></div>
+
+        <button type="button" id="replay" style="display: none">Rejouer</button>
+      </div>
+    </div>
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <h2 id="status"></h2>
         <button type="button" id="replay">Rejouer</button>
       </div>
     </div>
