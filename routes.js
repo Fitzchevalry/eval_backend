@@ -1,17 +1,18 @@
 const express = require("express");
-const session = require("express-session");
+require("dotenv").config();
 const path = require("path");
-const bodyParser = require("body-parser");
-const { checkPlayerInDatabase } = require("./auth");
-const { Partie, Score } = require("./database");
 const router = express.Router();
+const bodyParser = require("body-parser");
+const session = require("express-session");
+const { Partie, Score } = require("./database");
+const { checkPlayerInDatabase } = require("./auth");
 
 router.use(express.static(path.join(__dirname, "public")));
 router.use(bodyParser.json());
 
 router.use(
   session({
-    secret: "secret",
+    secret: process.env.SESSION_SECRET || "defaultSecret",
     resave: true,
     saveUninitialized: false,
     cookie: { maxAge: 600000 },

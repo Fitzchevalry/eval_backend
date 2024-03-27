@@ -6,7 +6,7 @@ const { updateScore } = require("./auth");
 const { Joueur, Partie } = require("./database");
 
 const app = express();
-const PORT = 8889;
+const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
 
 app.use(routes);
