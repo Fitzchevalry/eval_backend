@@ -16,7 +16,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const chooseWordSection = document.getElementById("chooseWordSection");
   const lettersGuessedElement = document.getElementById("lettersGuessed");
   const enterLetterSection = document.getElementById("enterLetterSection");
-  const debutPartie = new Date();
   let connectedPlayers = [];
 
   // Récupérer le nom d'utilisateur
@@ -196,6 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chooseWordSection.style.display = "none";
     attemptsLeftElement.style.display = "none";
     enterLetterSection.style.display = "none";
+    lettersGuessedElement.style.display = "none";
   });
 
   // Supprimer le joueur déconnecté de la liste des joueurs connectés
