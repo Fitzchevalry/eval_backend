@@ -24,10 +24,11 @@ document
       .then((response) => {
         // Gère la réponse de la requête
         if (response.ok) {
-          localStorage.setItem("username", username); // Stocke le nom d'utilisateur dans le LocalStorage
-          window.location.href = "/game"; // Redirige l'utilisateur vers la page de jeu
+          localStorage.setItem("username", username);
+          window.location.href = "/game";
         } else {
-          throw new Error("Erreur de connexion");
+          const messageError = document.getElementById("messageError");
+          messageError.innerHTML = "Utilisateur ou mot de passe invalide";
         }
       })
       .catch((error) => {

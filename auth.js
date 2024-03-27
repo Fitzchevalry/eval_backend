@@ -25,7 +25,6 @@ async function updateScore(username, scoreIncrement) {
     }
     playerScore.score += scoreIncrement;
     await playerScore.save();
-    console.log("score du joueur enregistré");
   } catch (error) {
     console.error("Erreur lors de la mise à jour du score :", error);
   }
